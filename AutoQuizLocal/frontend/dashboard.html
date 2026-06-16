@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoQuiz Dashboard</title>
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+  <div class="dashboard-wrapper">
+    <header class="dashboard-header">
+      <h1>AutoQuiz Dashboard</h1>
+      <div class="user-info">
+        <p>Welcome, <span id="username">Loading...</span></p>
+        <button id="logout-btn">Logout</button>
+      </div>
+    </header>
+
+    <main class="dashboard-main">
+
+      <!-- Subject Selection -->
+      <section class="card">
+        <h2>Select Subject</h2>
+        <div class="form-group">
+          <label for="subject-select">Subject</label>
+          <select id="subject-select">
+            <option value="">-- Select Subject --</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- Semester Selection -->
+      <section class="card">
+        <h2>Select Semester</h2>
+        <div class="form-group">
+          <label for="semester-select">Semester</label>
+          <select id="semester-select" disabled>
+            <option value="">-- Select Semester --</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- Quizzes Selection -->
+      <section class="card">
+        <h2>Quizzes</h2>
+        <div id="quiz-message" style="margin-bottom:10px;color:#e74c3c;"></div>
+        <div id="quiz-list">
+          <!-- checkboxes will be dynamically inserted here -->
+        </div>
+        <div>
+          <label><input type="checkbox" id="select-all-quizzes"> Select All</label>
+        </div>
+      </section>
+
+      <!-- Answer Mode Selection -->
+      <section class="card">
+        <h2>Answer Mode</h2>
+        <div class="radio-group">
+          <label><input type="radio" name="answer-mode" value="ai" checked> Use AI-generated answers</label>
+          <label><input type="radio" name="answer-mode" value="upload"> Upload my own answer image</label>
+        </div>
+        <div class="upload-container" id="upload-container" style="display:none;">
+          <input type="file" id="image-upload" accept="image/*">
+          <div class="image-preview" id="image-preview">No image selected</div>
+        </div>
+      </section>
+
+      <section class="center">
+        <button id="start-btn" disabled class="start-btn">Start Automation</button>
+      </section>
+      <div class="progress-section">
+  <div class="progress-label">Progress:</div>
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+  </div>
+  <p id="progressText" class="progress-text">Waiting to start...</p>
+</div>
+
+    </main>
+  </div>
+
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
