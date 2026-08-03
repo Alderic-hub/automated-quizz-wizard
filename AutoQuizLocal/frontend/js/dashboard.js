@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Fetch subjects from server
   async function loadSubjects() {
     try {
-      const res = await fetch('http://localhost:3000/fetch-dashboard/subjects');
+      const res = await fetch('/fetch-dashboard/subjects');
       const data = await res.json();
       if(!data.success) throw new Error(data.message);
 
@@ -94,7 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if(!subjectSelect.value) return;
 
     try {
-      const res = await fetch('http://localhost:3000/fetch-dashboard/quarters', {
+      const res = await fetch('/fetch-dashboard/quarters', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ subjectLink: subjectSelect.value })
@@ -130,7 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const quarterName = semesterSelect.value;
     try {
-      const res = await fetch('http://localhost:3000/fetch-dashboard/quizzes', {
+      const res = await fetch('/fetch-dashboard/quizzes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ quarterName })

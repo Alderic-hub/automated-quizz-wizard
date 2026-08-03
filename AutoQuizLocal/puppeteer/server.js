@@ -2,32 +2,49 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { validateCredentials } from './validate_user.js';
 import { fetchUserAndSubjects, fetchQuarters, fetchQuizzes } from './fetch_dashboard.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-const PORT = 3000;
+// Serve frontend static files
+app.use(express.static(path.join(__dirname, '../frontend')));
+
+const PORT = 5000;
 
 // Store the logged-in page for session reuse
 let loggedInPage = null;
 let loggedInBrowser = null;
 let keepAliveInterval = null;
 
-/** 🧩 Keep page alive to prevent idle timeout */
+// SSE clients for progress updates
+let sseClients = [];
+
+/** Push a progress update to all connected SSE clients */
+export function sendProgress(message, percent = null) {
+  const payload = JSON.stringify({ message, percent });
+  sseClients.forEach(res => res.write(`data: ${payload}\n\n`));
+}
+
+/** Keep page alive to prevent idle timeout */
 function startKeepAlive(page) {
   keepAliveInterval = setInterval(async () => {
     try {
-      await page.evaluate(() => document.title); // minimal DOM access
+      await page.evaluate(() => document.title);
     } catch (err) {
       console.warn('Page keep-alive failed:', err.message);
     }
-  }, 30_000); // every 30 seconds
+  }, 30_000);
 }
 
-/** 🧩 Stop keep-alive */
+/** Stop keep-alive */
 function stopKeepAlive() {
   if (keepAliveInterval) clearInterval(keepAliveInterval);
   keepAliveInterval = null;
@@ -35,17 +52,32 @@ function stopKeepAlive() {
 
 // ----------------- Routes -----------------
 
+// SSE progress stream
+app.get('/progress', (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  sseClients.push(res);
+
+  req.on('close', () => {
+    sseClients = sseClients.filter(client => client !== res);
+  });
+});
+
 // Validate user credentials and start session
 app.post('/validate', async (req, res) => {
-  const { email, password, headless } = req.body || {};
+  const { email, password } = req.body || {};
 
   if (!email || !password) {
     return res.status(400).json({ success: false, message: 'Email and password are required' });
   }
 
   try {
+    sendProgress('Launching browser...', 10);
     const result = await validateCredentials(email, password, {
-      headless: false,
+      headless: true,
       keepBrowserOpen: true,
       debug: true
     });
@@ -60,11 +92,12 @@ app.post('/validate', async (req, res) => {
       loggedInPage = result.page;
       loggedInBrowser = result.browser;
 
-      // Start keep-alive to prevent idle timeout
       startKeepAlive(loggedInPage);
+      sendProgress('Login successful', 100);
 
       return res.json({ success: true, message: 'Login successful' });
     } else {
+      sendProgress('Login failed', 0);
       return res.status(401).json({ success: false, message: result.message || 'Invalid credentials' });
     }
   } catch (err) {
@@ -77,7 +110,6 @@ async function getActivePage(req, res, next) {
   if (!loggedInPage) return res.status(401).json({ success: false, message: 'User not logged in' });
 
   try {
-    // Test if page is alive
     await loggedInPage.title();
   } catch (err) {
     console.log('Page was stale, reloading...');
@@ -137,6 +169,10 @@ app.post('/logout', async (req, res) => {
   }
 });
 
+// Serve frontend pages directly
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, '../frontend/index.html')));
+app.get('/dashboard', (req, res) => res.sendFile(path.join(__dirname, '../frontend/dashboard.html')));
+
 // Close browser on server shutdown
 process.on('SIGINT', async () => {
   stopKeepAlive();
@@ -147,4 +183,4 @@ process.on('SIGINT', async () => {
   process.exit();
 });
 
-app.listen(PORT, () => console.log(` Server running at http://localhost:${PORT}`));
+app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));

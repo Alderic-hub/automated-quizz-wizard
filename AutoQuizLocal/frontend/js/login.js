@@ -10,7 +10,7 @@ loginForm.addEventListener('submit', async (e) => {
   loginStatus.style.color = '#333';
 
   try {
-    const resp = await fetch('http://localhost:3000/validate', {
+    const resp = await fetch('/validate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password, headless: true }) // headless:true by default
