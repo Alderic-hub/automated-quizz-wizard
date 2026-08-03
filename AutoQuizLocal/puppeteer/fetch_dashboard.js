@@ -101,7 +101,7 @@ export async function fetchQuizzes(page, quarterName) {
     const notStarted = await page.$('.delayednotification');
     await newPage.close();
 
-    if (!isDone || !notStarted ) quizzes.push({ name: text, link });
+    if (!isDone && !notStarted) quizzes.push({ name: text, link });
   }
 
   return { quizzes };

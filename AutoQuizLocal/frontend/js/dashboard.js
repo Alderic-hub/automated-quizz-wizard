@@ -20,9 +20,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Load username from session
   const storedUsername = sessionStorage.getItem("username");
-  if(storedUsername) usernameSpan.textContent = storedUsername;
+  if (storedUsername) usernameSpan.textContent = storedUsername;
 
-  logoutBtn.addEventListener("click", () => {
+  // Logout — close browser session on server then redirect
+  logoutBtn.addEventListener("click", async () => {
+    try {
+      await fetch('/logout', { method: 'POST' });
+    } catch (e) {
+      console.warn('Logout request failed:', e);
+    }
     sessionStorage.clear();
     window.location.href = "index.html";
   });
@@ -33,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const isUpload = radio.value === 'upload';
       uploadContainer.style.display = isUpload ? 'block' : 'none';
       selectAllCheckbox.disabled = isUpload;
-      if(isUpload){
+      if (isUpload) {
         quizList.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
       }
     });
@@ -42,9 +48,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Image upload preview
   imageUpload.addEventListener('change', e => {
     const file = e.target.files[0];
-    if(file){
+    if (file) {
       const reader = new FileReader();
-      reader.onload = function(event){
+      reader.onload = function(event) {
         imagePreview.innerHTML = `<img src="${event.target.result}" alt="Preview">`;
       };
       reader.readAsDataURL(file);
@@ -59,7 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const res = await fetch('/fetch-dashboard/subjects');
       const data = await res.json();
-      if(!data.success) throw new Error(data.message);
+      if (!data.success) throw new Error(data.message);
 
       usernameSpan.textContent = data.user;
       sessionStorage.setItem('username', data.user);
@@ -91,7 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
     startBtn.disabled = true;
     selectAllCheckbox.checked = false;
 
-    if(!subjectSelect.value) return;
+    if (!subjectSelect.value) return;
 
     try {
       const res = await fetch('/fetch-dashboard/quarters', {
@@ -100,7 +106,7 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify({ subjectLink: subjectSelect.value })
       });
       const data = await res.json();
-      if(!data.success) throw new Error(data.message);
+      if (!data.success) throw new Error(data.message);
 
       quartersData = data.quarters || [];
 
@@ -113,7 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
         semesterSelect.appendChild(opt);
       });
 
-    } catch(err) {
+    } catch (err) {
       console.error(err);
       quizMessage.textContent = "Failed to load quarters: " + err.message;
     }
@@ -126,7 +132,7 @@ document.addEventListener("DOMContentLoaded", () => {
     startBtn.disabled = true;
     selectAllCheckbox.checked = false;
 
-    if(!semesterSelect.value) return;
+    if (!semesterSelect.value) return;
 
     const quarterName = semesterSelect.value;
     try {
@@ -136,11 +142,11 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify({ quarterName })
       });
       const data = await res.json();
-      if(!data.success) throw new Error(data.message);
+      if (!data.success) throw new Error(data.message);
 
       quizzesData = data.quizzes || [];
 
-      if(quizzesData.length === 0){
+      if (quizzesData.length === 0) {
         quizMessage.textContent = "All quizzes are done or semester has not started yet!";
         return;
       }
@@ -163,30 +169,30 @@ document.addEventListener("DOMContentLoaded", () => {
         quizList.appendChild(div);
       });
 
-    } catch(err){
+    } catch (err) {
       console.error(err);
       quizMessage.textContent = "Failed to load quizzes: " + err.message;
     }
   });
 
-  // Handle quiz selection enabling Start button (single listener)
+  // Handle quiz selection enabling Start button
   quizList.addEventListener('change', () => {
     const checked = quizList.querySelectorAll('input[type="checkbox"]:checked').length;
     startBtn.disabled = checked === 0;
 
     const isUpload = document.querySelector('input[name="answer-mode"]:checked').value === 'upload';
-    if(isUpload && checked > 1){
+    if (isUpload && checked > 1) {
       const lastChecked = Array.from(quizList.querySelectorAll('input[type="checkbox"]:checked')).pop();
       lastChecked.checked = false;
     }
   });
 
-  // Start automation
+  // Start automation — placeholder until Phase 5 wires up run_quiz.js
   startBtn.addEventListener('click', () => {
     startBtn.disabled = true;
     updateProgress(10, 'Starting automation...');
 
-    // Replace these setTimeouts with real Puppeteer automation calls later
+    // TODO Phase 5: replace with real /run-quiz SSE stream
     setTimeout(() => { updateProgress(30, 'Logging in to account...'); }, 1000);
     setTimeout(() => { updateProgress(50, 'Fetching available quizzes...'); }, 2000);
     setTimeout(() => { updateProgress(80, 'Completing selected tasks...'); }, 4000);
@@ -201,7 +207,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Select All (only for AI mode)
   selectAllCheckbox.addEventListener('change', () => {
     const isAI = document.querySelector('input[name="answer-mode"]:checked').value === 'ai';
-    if(!isAI) return;
+    if (!isAI) return;
     const allCBs = quizList.querySelectorAll('input[type="checkbox"]');
     allCBs.forEach(cb => cb.checked = selectAllCheckbox.checked);
     startBtn.disabled = allCBs.length === 0 || !selectAllCheckbox.checked;
