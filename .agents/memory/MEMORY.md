@@ -1,0 +1,1 @@
+- [Hardcoded test credentials](hardcoded-credentials.md) — remove from index.html before final release; kept intentionally for testing
