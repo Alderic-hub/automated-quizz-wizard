@@ -1,0 +1,56 @@
+```
+Phase 1: Frontend Setup
+Construct index.html (login form for the quiz platform, requiring email/password).
+Develop dashboard.html (subject selection interface, accompanied by a progress bar and screenshot display).
+Craft CSS (style.css) to enhance the aesthetic appeal of forms, the progress bar, and the screenshot display.
+Create login.js:
+- Capture user input for email/password.
+- Invoke validate_user.js through Node.js (or Electron).
+- Manage success/failure responses → redirect to the dashboard or present an error message.
+Develop dashboard.js:
+- Capture subject selections.
+- Invoke run_quiz.js via Node.js.
+- Update the progress bar in accordance with messages relayed by Puppeteer.
+- Exhibit final screenshots upon completion.
+- Present a completion popup when the automation concludes.
+Phase 2: Puppeteer Validation
+Construct validate_user.js:
+- Launch Puppeteer (non-headless mode optional for debugging).
+- Navigate to the quiz site login interface.
+- Input email/password credentials.
+- Detect successful login outcomes.
+- Return "success" or "fail" to the frontend.
+Phase 3: Puppeteer Automation (run_quiz.js)
+Initiate Puppeteer in headless mode: true.
+- Navigate to the designated subject pages.
+- Identify question types:
+  - Multiple choice
+  - Matching
+  - Fill-in-the-blank
+- Populate dummy answers (minimum viable product) or integrate AI/OCR solutions at a later stage.
+- Iterate through all quiz questions.
+- Update progress messages for the frontend to reflect on the progress bar.
+- Capture the final screenshot and store it in /screenshots.
+- Signal completion for the frontend popup.
+Phase 4: Frontend Integration
+Ensure the login form triggers validation and redirects appropriately.
+- Ensure the dashboard form initiates Puppeteer automation.
+- Capture stdout messages from Puppeteer → update the progress bar in real-time.
+- Display the final screenshot in the dashboard upon the conclusion of automation.
+- Present a completion popup following the final step.
+Phase 5: Testing & Debugging
+Conduct tests on login validation with both correct and incorrect credentials.
+- Test subject selection → Puppeteer operates in headless mode.
+- Validate real-time updates of the progress bar.
+- Test the saving and display of screenshots.
+- Investigate edge cases:
+  - Quiz site timeouts or erroneous selectors
+  - No subjects selected
+  - Multiple subjects (if planning for future enhancements)
+Phase 6: MVP Refinement
+Substitute dummy answers with a more sophisticated solution (AI/OCR/local reference).
+- Incorporate support for multiple subjects.
+- Enhance the visual appeal and user experience of the progress bar.
+- Integrate error handling for Puppeteer navigation complications.
+- Optimize performance and storage solutions for screenshots.
+```
